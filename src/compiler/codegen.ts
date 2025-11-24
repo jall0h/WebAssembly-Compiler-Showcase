@@ -196,15 +196,14 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
    * and functions to a list of its return type with parameter types
    * @returns {string[]} An array of strings representing the types for arguments or parameters.
    */
-  getArgumentTypes(
-    ctx: ArgContext[] | ExpContext[],
-    env: type_env
-  ): (string | string[])[] {
+  getArgumentTypes(ctx: ArgContext[] | ExpContext[], env: type_env): string[] {
     let args = [];
 
     for (let i = 0; i < ctx.length; i++) {
       let type = this.getType(ctx[i], env);
-      args.push(type);
+      if (typeof type === "string") {
+        args.push(type);
+      }
     }
     return args;
   }
@@ -275,7 +274,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
    * @returns
    */
   visitA(ctx: AContext, ts?: type_env): [string, type_env] {
-    if (ctx.ta() && ctx.AND_OP() && ctx.a() && ts) {
+    if (ts && ctx.ta() && ctx.AND_OP() && ctx.a()) {
       return [
         `${this.visit_node(ctx.ta(), ts)[0]}\n${
           this.visit_node(ctx.a(), ts)[0]
@@ -283,7 +282,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         ts,
       ];
     }
-    if (ctx.ta()) {
+    if (ts && ctx.ta()) {
       return this.visit_node(ctx.ta(), ts);
     }
     throw Error("Cannot Recognise Expression");
@@ -296,13 +295,13 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
    * @returns
    */
   visitTa(ctx: TaContext, ts?: type_env): [string, type_env] {
-    if (ctx.exp(0) && ctx.exp(1) && ts) {
+    if (ts && ctx.exp(0) && ctx.exp(1)) {
       const e1 = this.visit_node(ctx.exp(0), ts)[0];
       const e2 = this.visit_node(ctx.exp(1), ts)[0];
       const t1 = this.getType(ctx.exp(0), ts);
       const t2 = this.getType(ctx.exp(1), ts);
       const sameType = t1 === t2;
-      if (sameType && t1 == "Int") {
+      if (ts && sameType && t1 == "Int") {
         if (ctx.EQUAL_TO()) return [`${e1}${e2}i32.eq\n`, ts];
         if (ctx.NOT_EQUAL_TO()) return [`${e1}${e2}i32.ne\n`, ts];
         if (ctx.LESS_THAN()) return [`${e1}${e2}i32.lt_s\n`, ts];
@@ -310,7 +309,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         if (ctx.MORE_THAN()) return [`${e1}${e2}i32.gt_s\n`, ts];
         if (ctx.MORE_THAN_EQUAL()) return [`${e1}${e2}i32.gt_e\n`, ts];
       }
-      if (sameType && t1 == "Double") {
+      if (ts && sameType && t1 == "Double") {
         if (ctx.EQUAL_TO()) return [`${e1}${e2}f32.eq\n`, ts];
         if (ctx.NOT_EQUAL_TO()) return [`${e1}${e2}f32.ne\n`, ts];
         if (ctx.LESS_THAN()) return [`${e1}${e2}f32.lt\n`, ts];
@@ -318,7 +317,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         if (ctx.MORE_THAN()) return [`${e1}${e2}f32.gt\n`, ts];
         if (ctx.MORE_THAN_EQUAL()) return [`${e1}${e2}f32.ge\n`, ts];
       }
-      if (sameType && t1 == "String") {
+      if (ts && sameType && t1 == "String") {
         if (ctx.EQUAL_TO()) return [`${e1}${e2}call $string_eq\n`, ts];
         if (ctx.NOT_EQUAL_TO()) return [`${e1}${e2}call $string_ne\n`, ts];
       } else
@@ -326,7 +325,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
           `Boolean Expression has type ${t2} but was expecting ${t1}`
         );
     }
-    if (ctx.L_PAREN() && ctx.bexp() && ctx.R_PAREN()) {
+    if (ts && ctx.L_PAREN() && ctx.bexp() && ctx.R_PAREN()) {
       return this.visit_node(ctx.bexp(), ts);
     }
     throw Error("Cannot Recognise Expression");
@@ -543,7 +542,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
     ) {
       if (this.array_env.get(ctx.ID().getText())) {
         if (this.getType(ctx.exp(0), ts) === "Int") {
-          const mem_offset = this.array_env.get(ctx.ID().getText())?.offset;
+          const mem_offset = this.array_env.get(ctx.ID().getText()).offset;
           if (ts.get(ctx.ID().getText()) === "Int[]") {
             return [
               `i32.const ${mem_offset}\n${
@@ -571,11 +570,8 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         ];
       }
     }
-    if (ts && ctx.ID() && ctx.L_PAREN() && ctx.exp_list() && ctx.R_PAREN()) {
-      const arg_types: (string | string[])[] = this.getArgumentTypes(
-        ctx.exp_list(),
-        ts
-      );
+    if (ctx.ID() && ctx.L_PAREN() && ctx.exp_list() && ctx.R_PAREN()) {
+      const arg_types: string[] = this.getArgumentTypes(ctx.exp_list(), ts);
       let params: string[] = [];
       const param_types = ts.get(ctx.ID().getText());
       if (typeof param_types === "string") {
@@ -742,7 +738,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         offset: this.counter,
         length: Number(ctx.NUMBER().getText()),
       });
-      let new_ts: type_env;
+      let new_ts: type_env = ts;
       if (ctx.INT()) {
         new_ts = new Map([...ts, [ctx.GLOBAL_ID().getText(), "Int[]"]]);
       }

@@ -1,5 +1,5 @@
 import { Compiler } from "./compiler";
-
+import wabt from "wabt";
 /**
  * Outputs given number to terminal
  *
@@ -71,6 +71,22 @@ const execute = async (fileName: string, memory: WebAssembly.Memory) => {
   });
 };
 
+// Get Wabt Module
+async function compile() {
+  const wabtModule = await wabt();
+
+  const wat = `(module
+    (func (export "add") (param i32 i32) (result i32)
+      local.get 0
+      local.get 1
+      i32.add)
+  )`;
+  const mod = wabtModule.parseWat("example.wat", wat);
+  mod.validate();
+  const binaryOutput = mod.toBinary({});
+  console.log("WASM Binary:", binaryOutput);
+}
+
 // Get WAT (text format) file and convert to WASM file (binary format)
 const generateWasm = async (file: string) => {
   try {
@@ -97,25 +113,3 @@ const run = async (fileName: string) => {
   await execute(fileName, memory);
 };
 
-// Runs program 10 times an gets average time
-const runTimed = async (fileName: string) => {
-  const compiler = new Compiler();
-  await compiler.compile(fileName);
-  let total = 0;
-  for (let i = 0; i < 10; i++) {
-    const startTime = performance.now();
-    await run(fileName);
-    const endTime = performance.now();
-    total += (endTime - startTime) / 1000;
-  }
-  console.log(`Time ${(total / 10).toExponential(3)}s`);
-};
-
-// Runs program
-const runMain = async (file: string) => {
-  await generateWasm(file);
-  console.log("Running File");
-  await run(file);
-};
-
-runTimed(file);

@@ -60,6 +60,7 @@ export class Compiler {
   compile = async (file: string) => {
     const code = this.generateWATString(file);
     console.log(code);
+    return code;
   };
 
   /**
