@@ -10,14 +10,10 @@ export class ThrowErrorListener<T> extends ErrorListener<T> {
     e: RecognitionException | undefined
   ): void {
     if (offendingSymbol === null || offendingSymbol === undefined) {
-      throw Error(
-        `Lexing Error line ${line}, column ${column}.Error Message: \" ${msg}\" `
-      );
+      throw Error(`Lexing Error`);
     }
     if (offendingSymbol instanceof Token) {
-      throw Error(
-        `Parsing Error line ${line}, column ${column}.Error Message: \" ${msg}\" `
-      );
+      throw Error(`Parsing Error`);
     }
   }
 }

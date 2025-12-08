@@ -2,18 +2,29 @@ import wabt from "wabt";
 import "./App.css";
 import { Compiler } from "./compiler/compiler";
 import { useRef, useState } from "react";
+import ErrorModal from "./components/ErrorModal";
 
 function App() {
   const [watBox, setWatBox] = useState<string>("");
   const [code, setCode] = useState<string>(`print_string("Hello, World!");`);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(
+    undefined
+  );
+  const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
   const compileCode = async (code: string) => {
     const compiler = new Compiler();
-    const c = await compiler.compile(code).catch((err) => {
-      console.error("Compilation Error: ", err);
-      setWatBox(`;; Compilation Error: ${err.message}`);
-      return `;; Compilation Error: ${err.message}`;
-    });
-    setWatBox(c);
+    const c = await compiler
+      .compile(code)
+      .then((c) => {
+        setWatBox(c);
+        setShowErrorModal(false);
+      })
+      .catch((err) => {
+        setWatBox("");
+        setShowErrorModal(true);
+        setErrorMessage(`Compilation Error: ${err.message}`);
+        return `;; Compilation Error: ${err.message}`;
+      });
   };
 
   return (
@@ -23,6 +34,9 @@ function App() {
       </nav>
       <div className="flex gap-4 container mx-auto h-150">
         <div className="w-full h-full">
+          <span>
+            <select></select>
+          </span>
           <textarea className="border h-full w-full" />
         </div>
         <button
@@ -37,6 +51,9 @@ function App() {
           <textarea className="border w-full h-full" value={watBox} />
         </div>
       </div>
+      {errorMessage && showErrorModal && (
+        <ErrorModal errorMessage={errorMessage} />
+      )}
     </>
   );
 }
