@@ -1,9 +1,9 @@
-type programs = { name: string; program: string };
+export type programs = { name: string; program: string };
 
 export const examplePrograms: programs[] = [
   {
     name: "array.fun",
-    program: `val Intarr[3]:Int;
+    program: String.raw`val Intarr[3]:Int;
 val Arr[3]:Double;
 Intarr[0] = 1;
 Intarr[1] = 2;
@@ -33,7 +33,7 @@ print_string("\n")
   },
   {
     name: "bf.fun",
-    program: `val Arr[30000]: Int;
+    program: String.raw`val Arr[30000]: Int;
 val Bf: String ="++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";
 
 def jumpLeft(prog:String, pc:Int, level:Int) : Int = {
@@ -102,7 +102,7 @@ run(Bf)`,
   },
   {
     name: "fact.fun",
-    program: `def fact(n: Int) : Int =
+    program: String.raw`def fact(n: Int) : Int =
   if n == 0 then 1 else n * fact(n - 1);
 
 def facT(n: Int, acc: Int) : Int =
@@ -119,7 +119,7 @@ print_string("\n")}
   },
   {
     name: "fib.fun",
-    program: `def fib(n:Int):Int = {
+    program: String.raw`def fib(n:Int):Int = {
     if n <= 1 then n else fib(n-1) + fib(n-2)
 };
 
@@ -128,7 +128,7 @@ print_string("\n")}`,
   },
   {
     name: "hello.fun",
-    program: `def hello(): String = "Hello World!\n";
+    program: String.raw`def hello(): String = "Hello World!\n";
 
 def print_hello(x: String) : Void = print_string(x);
 
@@ -136,7 +136,7 @@ print_string(hello())`,
   },
   {
     name: "mand.fun",
-    program: `val Ymin: Double = -1.3;
+    program: String.raw`val Ymin: Double = -1.3;
 val Ymax: Double =  1.3;
 val Ystep: Double = 0.05;  
 
@@ -173,7 +173,7 @@ y_iter(Ymin)`,
   },
   {
     name: "sqr.fun",
-    program: `val Max : Int = 100;
+    program: String.raw`val Max : Int = 100;
 
 def sqr(x: Int) : Int = x * x;
 
@@ -189,7 +189,7 @@ def all(n: Int) : Void = {
   },
   {
     name: "string_comp.fun",
-    program: `val Bf: String = "[]";
+    program: String.raw`val Bf: String = "[]";
 
 def is_equal(x: String, y: String) : Void = {
     if x == y[0] then print_string("Equal\n") else print_string("Not Equal\n")
@@ -205,7 +205,7 @@ is_not_equal("[", Bf)}`,
   },
   {
     name: "test_incorrect.fun",
-    program: `
+    program: String.raw`
     def hello(): String = "Hello World!\n";
 
 def print_hello(x: String) : Void = print_string(x);

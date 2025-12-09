@@ -4,10 +4,13 @@ import { Compiler } from "./compiler/compiler";
 import { useRef, useState } from "react";
 import ErrorModal from "./components/ErrorModal";
 import { functionImports } from "./importedFunctions";
+import { examplePrograms, type programs } from "./programs";
 
 function App() {
   const [watBox, setWatBox] = useState<string>("");
-  const [code, setCode] = useState<string>(`print_string("Hello, World!");`);
+  const [code, setCode] = useState<string>(
+    `Select a program from the dropdown`
+  );
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
   );
@@ -117,13 +120,23 @@ function App() {
       <div className="flex gap-4 container mx-auto h-150">
         <div className="w-full h-full">
           <span>
-            <select></select>
+            <select
+              defaultValue={"Select a program"}
+              onChange={(e) => {
+                setCode(e.target.value);
+              }}
+            >
+              <option disabled>Select a program</option>
+              {examplePrograms.map(({ name, program }) => {
+                return <option value={program}>{name}</option>;
+              })}
+            </select>
           </span>
-          <textarea className="border h-full w-full" />
+          <textarea value={code} className="border h-full w-full" />
         </div>
         <button
           onClick={() => {
-            compileCode(document.querySelector("textarea")?.value || "");
+            compileCode(code || "");
           }}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
@@ -131,11 +144,9 @@ function App() {
         </button>
         <button
           onClick={() => {
-            compileCode(document.querySelector("textarea")?.value || "").then(
-              (code) => {
-                execute(code);
-              }
-            );
+            compileCode(code || "").then((code) => {
+              execute(code);
+            });
           }}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
