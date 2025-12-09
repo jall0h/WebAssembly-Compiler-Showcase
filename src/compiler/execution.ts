@@ -112,4 +112,3 @@ const run = async (fileName: string) => {
   const memory = new WebAssembly.Memory({ initial: 10, maximum: 65536 });
   await execute(fileName, memory);
 };
-

@@ -3,6 +3,7 @@ import "./App.css";
 import { Compiler } from "./compiler/compiler";
 import { useRef, useState } from "react";
 import ErrorModal from "./components/ErrorModal";
+import { functionImports } from "./importedFunctions";
 
 function App() {
   const [watBox, setWatBox] = useState<string>("");
@@ -15,9 +16,10 @@ function App() {
     const compiler = new Compiler();
     const c = await compiler
       .compile(code)
-      .then((c) => {
+      .then((c: string) => {
         setWatBox(c);
         setShowErrorModal(false);
+        return c;
       })
       .catch((err) => {
         setWatBox("");
@@ -25,8 +27,88 @@ function App() {
         setErrorMessage(`Compilation Error: ${err.message}`);
         return `;; Compilation Error: ${err.message}`;
       });
-  };
 
+    return c;
+  };
+  async function execute(watCode: string) {
+    const wabtModule = await wabt();
+
+    //Function imports
+    const mod = wabtModule.parseWat("imports.wat", functionImports);
+    mod.validate();
+    const binaryOutput = mod.toBinary({}).buffer;
+    console.log("WASM Binary:", binaryOutput);
+
+    //Example Program
+    const program = wabtModule.parseWat("program.wat", watCode);
+    program.validate();
+    const programBinary = program.toBinary({}).buffer;
+    console.log("Program WASM Binary:", programBinary);
+
+    /**
+     * Outputs given number to terminal
+     *
+     * @param num - The number to ouput
+     */
+    const outputNumber = (num: number) => {
+      console.log(String(num));
+    };
+
+    /**
+     * Outputs character if valid charcode otherwise outputs a the number
+     *
+     * @param charCode - The ASCII Value of a Character
+     */
+    const outputChar = (charCode: number) => {
+      if (charCode <= 255) {
+        console.log(String.fromCharCode(charCode));
+      } else {
+        outputNumber(charCode);
+      }
+    };
+
+    const memory = new WebAssembly.Memory({ initial: 10, maximum: 65536 });
+    const importObject = {
+      process: {
+        //Outputs strings to console
+        print_string: (offset: number, length: number) => {
+          const arr = new Uint8Array(memory.buffer, offset, length);
+          const string = new TextDecoder("utf8").decode(arr);
+          console.log(string);
+        },
+        //Outputs integers to console
+        print_int: (num: number) => {
+          outputNumber(num);
+        },
+        //Outputs integers to consoles
+        print_float: (num: number) => {
+          outputNumber(num);
+        },
+        print_char: (charCode: number) => {
+          outputChar(charCode);
+        },
+      },
+    };
+
+    await WebAssembly.instantiate(binaryOutput, {
+      ...importObject,
+      js: { mem: memory },
+    }).then(async (wasmModule) => {
+      console.log(wasmModule);
+      const exported_functions = wasmModule.instance.exports;
+      await WebAssembly.instantiate(programBinary, {
+        ...importObject,
+        functions: exported_functions,
+        js: { mem: memory },
+      }).then(async (module) => {
+        const instance = module.instance.exports;
+        if (instance.main) {
+          const main = instance.main as CallableFunction;
+          main();
+        }
+      });
+    });
+  }
   return (
     <>
       <nav className="mb-20">
@@ -46,6 +128,18 @@ function App() {
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Compile
+        </button>
+        <button
+          onClick={() => {
+            compileCode(document.querySelector("textarea")?.value || "").then(
+              (code) => {
+                execute(code);
+              }
+            );
+          }}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Execute
         </button>
         <div className="w-full h-full">
           <textarea className="border w-full h-full" value={watBox} />
