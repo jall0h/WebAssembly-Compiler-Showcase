@@ -11,6 +11,7 @@ function App() {
   const [code, setCode] = useState<string>(
     `Select a program from the dropdown`
   );
+  const [output, setOutput] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
   );
@@ -55,6 +56,8 @@ function App() {
      */
     const outputNumber = (num: number) => {
       console.log(String(num));
+      currentOutput.push(String(num));
+      setOutput([...currentOutput]);
     };
 
     /**
@@ -71,6 +74,7 @@ function App() {
     };
 
     const memory = new WebAssembly.Memory({ initial: 10, maximum: 65536 });
+    const currentOutput: string[] = [];
     const importObject = {
       process: {
         //Outputs strings to console
@@ -78,6 +82,9 @@ function App() {
           const arr = new Uint8Array(memory.buffer, offset, length);
           const string = new TextDecoder("utf8").decode(arr);
           console.log(string);
+          currentOutput.push(string);
+          setOutput([...currentOutput]);
+          console.log(output);
         },
         //Outputs integers to console
         print_int: (num: number) => {
@@ -112,11 +119,24 @@ function App() {
       });
     });
   }
+
   return (
     <>
       <nav className="mb-20">
         <h1 className="text-3xl font-bold underline">A-FUN Compiler</h1>
       </nav>
+      <div className="w-full h-250">
+        <textarea
+          className="border w-full h-full"
+          value={output
+            .map((x) => {
+              if (x === "\n\x00") {
+                return "\n";
+              } else return x;
+            })
+            .join("")}
+        />
+      </div>
       <div className="flex gap-4 container mx-auto h-150">
         <div className="w-full h-full">
           <span>
@@ -147,6 +167,7 @@ function App() {
             compileCode(code || "").then((code) => {
               execute(code);
             });
+            console.log("output", output);
           }}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
@@ -156,6 +177,7 @@ function App() {
           <textarea className="border w-full h-full" value={watBox} />
         </div>
       </div>
+
       {errorMessage && showErrorModal && (
         <ErrorModal errorMessage={errorMessage} />
       )}
@@ -179,13 +201,8 @@ export default App;
 //   console.log("WASM Binary:", binaryOutput);
 // }
 
-//Steps i need to take
-// 1. Get the source code from the textarea
-// 2. Produce the WAT format code
-// 3. Use Wabt to convert to WASM
-
-// TODO
-// Actually create wasm thing
-// Style page to look nicer
-// pre-laod the example programs in a select list for the text area
-// Add project to CV
+//LEFT TO DO
+//Refactor
+// Style
+// Deploy
+//Add to Portfolio
