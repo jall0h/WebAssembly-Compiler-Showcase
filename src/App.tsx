@@ -36,18 +36,17 @@ function App() {
   };
   async function execute(watCode: string) {
     const wabtModule = await wabt();
-
     //Function imports
     const mod = wabtModule.parseWat("imports.wat", functionImports);
     mod.validate();
     const binaryOutput = mod.toBinary({}).buffer;
-    console.log("WASM Binary:", binaryOutput);
+    // console.log("WASM Binary:", binaryOutput);
 
     //Example Program
     const program = wabtModule.parseWat("program.wat", watCode);
     program.validate();
     const programBinary = program.toBinary({}).buffer;
-    console.log("Program WASM Binary:", programBinary);
+    // console.log("Program WASM Binary:", programBinary);
 
     /**
      * Outputs given number to terminal
@@ -55,7 +54,7 @@ function App() {
      * @param num - The number to ouput
      */
     const outputNumber = (num: number) => {
-      console.log(String(num));
+      // console.log(String(num));
       currentOutput.push(String(num));
       setOutput([...currentOutput]);
     };
@@ -67,7 +66,9 @@ function App() {
      */
     const outputChar = (charCode: number) => {
       if (charCode <= 255) {
-        console.log(String.fromCharCode(charCode));
+        // console.log(String.fromCharCode(charCode));
+        currentOutput.push(String.fromCharCode(charCode));
+        setOutput([...currentOutput]);
       } else {
         outputNumber(charCode);
       }
@@ -81,10 +82,8 @@ function App() {
         print_string: (offset: number, length: number) => {
           const arr = new Uint8Array(memory.buffer, offset, length);
           const string = new TextDecoder("utf8").decode(arr);
-          console.log(string);
           currentOutput.push(string);
           setOutput([...currentOutput]);
-          console.log(output);
         },
         //Outputs integers to console
         print_int: (num: number) => {
@@ -104,7 +103,6 @@ function App() {
       ...importObject,
       js: { mem: memory },
     }).then(async (wasmModule: any) => {
-      console.log(wasmModule);
       const exported_functions = wasmModule.instance.exports;
       await WebAssembly.instantiate(programBinary, {
         ...importObject,
@@ -161,7 +159,6 @@ function App() {
             compileCode(code || "").then((code) => {
               execute(code);
             });
-            console.log("output", output);
           }}
           className="bg-blue-500 text-white px-4 py-2  rounded"
         >
