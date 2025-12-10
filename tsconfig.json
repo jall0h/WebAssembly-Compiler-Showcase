@@ -1,11 +1,12 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
   "compilerOptions": {
-    "types": ["node"]
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "target": "ES2020",
+    "module": "ESNext",
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src"]
 }

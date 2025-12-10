@@ -189,8 +189,3 @@ function App() {
 }
 
 export default App;
-
-//LEFT TO DO
-// Style
-// Deploy
-//Add to Portfolio
