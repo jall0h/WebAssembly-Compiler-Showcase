@@ -50,7 +50,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
    * and functions to a list of its return type with parameter types
    * @returns {string | string[]} The single type or list of the type of the expressions
    */
-  getType(ctx: Context, ts: type_env): string | string[] {
+  getType(ctx: Context, ts: type_env): string | string[] | undefined {
     if (ctx instanceof FContext) {
       if (ctx.L_CURLY_PAREN() && ctx.exp(0) && ctx.R_CURLY_PAREN()) {
         return this.getType(ctx.exp(0), ts);
@@ -91,7 +91,10 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         (ctx.ID() && ctx.L_PAREN() && ctx.exp_list() && ctx.R_PAREN()) ||
         (ctx.ID() && ctx.L_PAREN() && ctx.R_PAREN())
       ) {
-        return ts.get(ctx.ID().getText())[0];
+        const entry = ts?.get(ctx.ID().getText());
+        if (entry && entry[0]) {
+          return entry[0];
+        }
       }
       if (ctx.ID()) {
         return ts.get(ctx.ID().getText());
@@ -542,7 +545,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
     ) {
       if (this.array_env.get(ctx.ID().getText())) {
         if (this.getType(ctx.exp(0), ts) === "Int") {
-          const mem_offset = this.array_env.get(ctx.ID().getText()).offset;
+          const mem_offset = this.array_env.get(ctx.ID().getText())?.offset;
           if (ts.get(ctx.ID().getText()) === "Int[]") {
             return [
               `i32.const ${mem_offset}\n${
@@ -577,7 +580,9 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
       if (typeof param_types === "string") {
         params.push(param_types as string);
       } else {
-        params = param_types.slice(1);
+        if (param_types) {
+          params = param_types.slice(1);
+        }
       }
       if (!this.checkEqual(params, arg_types)) {
         throw new Error(
@@ -611,9 +616,9 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         ];
       }
       if (ts.get(ctx.ID().getText()) == "Int[]") {
-        const mem_offset: number = this.array_env.get(
+        const mem_offset: number | undefined = this.array_env.get(
           ctx.ID().getText()
-        ).offset;
+        )?.offset;
         return [`i32.const ${mem_offset}\n`, ts];
       }
       return [`local.get $${ctx.ID().getText()}\n`, ts];
@@ -628,7 +633,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         if (this.getType(ctx.exp(0), ts) === "Int") {
           const mem_offset = this.array_env.get(
             ctx.GLOBAL_ID().getText()
-          ).offset;
+          )?.offset;
           if (ts.get(ctx.GLOBAL_ID().getText()) === "Int[]") {
             return [
               `i32.const ${mem_offset}\n${
@@ -652,7 +657,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
       }
       if (this.getType(ctx.exp(0), ts) === "Int") {
         if (ts.get(ctx.GLOBAL_ID().getText()) === "String") {
-          const offset = this.string_env.get(ctx.GLOBAL_ID().getText()).offset;
+          const offset = this.string_env.get(ctx.GLOBAL_ID().getText())?.offset;
           return [
             `i32.const ${offset}\n${
               this.visit_node(ctx.exp(0), ts)[0]
@@ -675,9 +680,9 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         ];
       }
       if (ts.get(ctx.GLOBAL_ID().getText()) == "Int[]") {
-        const mem_offset: number = this.array_env.get(
+        const mem_offset: number | undefined = this.array_env.get(
           ctx.GLOBAL_ID().getText()
-        ).offset;
+        )?.offset;
         return [`i32.const ${mem_offset}\n`, ts];
       }
       return [`global.get $${ctx.GLOBAL_ID().getText()}\n`, ts];
@@ -697,7 +702,7 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
     if (ctx.STRING()) {
       if (this.string_env.get(ctx.STRING().getText())) {
         const s = this.string_env.get(ctx.STRING().getText());
-        return [`i32.const ${s.offset}\ni32.const ${s.length}\n`, ts];
+        return [`i32.const ${s?.offset}\ni32.const ${s?.length}\n`, ts];
       } else {
         const offset = this.counter;
         this.code_start += `(data (i32.const ${offset}) ${ctx
@@ -745,7 +750,8 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
       if (ctx.DOUBLE()) {
         new_ts = new Map([...ts, [ctx.GLOBAL_ID().getText(), "Double[]"]]);
       }
-      this.counter += this.array_env.get(ctx.GLOBAL_ID().getText()).length * 4;
+      const global_id = this.array_env.get(ctx.GLOBAL_ID().getText());
+      if (global_id) this.counter += global_id?.length * 4;
       return [``, new_ts];
     }
 
@@ -811,9 +817,9 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
         this.counter += str_len;
         return [
           `(global $${ctx.GLOBAL_ID().getText()}_o i32 (i32.const ${
-            this.string_env.get(ctx.GLOBAL_ID().getText()).offset
+            this.string_env.get(ctx.GLOBAL_ID().getText())?.offset
           }))\n(global $${ctx.GLOBAL_ID().getText()}_l i32 (i32.const ${
-            this.string_env.get(ctx.GLOBAL_ID().getText()).length
+            this.string_env.get(ctx.GLOBAL_ID().getText())?.length
           }))\n`,
           new_ts,
         ];
@@ -829,9 +835,9 @@ export class CodeGenerator extends GrammarVisitor<[string, type_env]> {
       ctx.exp(0) &&
       ctx.exp(1)
     ) {
-      const mem_offset: number = this.array_env.get(
+      const mem_offset: number | undefined = this.array_env.get(
         ctx.GLOBAL_ID().getText()
-      ).offset;
+      )?.offset;
       const position: string =
         this.visit_node(ctx.exp(0), ts)[0] + "i32.const 4\ni32.mul\n";
       if (ts.get(ctx.GLOBAL_ID().getText()) === "Int[]") {
