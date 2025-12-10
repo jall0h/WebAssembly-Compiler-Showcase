@@ -1,10 +1,10 @@
 import wabt from "wabt";
 import "./App.css";
 import { Compiler } from "./compiler/compiler";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import ErrorModal from "./components/ErrorModal";
 import { functionImports } from "./importedFunctions";
-import { examplePrograms, type programs } from "./programs";
+import { examplePrograms } from "./programs";
 
 function App() {
   const [watBox, setWatBox] = useState<string>("");
@@ -103,14 +103,14 @@ function App() {
     await WebAssembly.instantiate(binaryOutput, {
       ...importObject,
       js: { mem: memory },
-    }).then(async (wasmModule) => {
+    }).then(async (wasmModule: any) => {
       console.log(wasmModule);
       const exported_functions = wasmModule.instance.exports;
       await WebAssembly.instantiate(programBinary, {
         ...importObject,
         functions: exported_functions,
         js: { mem: memory },
-      }).then(async (module) => {
+      }).then(async (module: any) => {
         const instance = module.instance.exports;
         if (instance.main) {
           const main = instance.main as CallableFunction;
@@ -125,7 +125,54 @@ function App() {
       <nav className="mb-20">
         <h1 className="text-3xl font-bold underline">A-FUN Compiler</h1>
       </nav>
-      <div className="w-full h-250">
+      <div className="container mx-auto">
+        <select
+          defaultValue={"Select a program"}
+          onChange={(e) => {
+            setCode(e.target.value);
+          }}
+        >
+          <option disabled>Select a program</option>
+          {examplePrograms.map(({ name, program }) => {
+            return <option value={program}>{name}</option>;
+          })}
+        </select>
+      </div>
+      <div className="flex gap-4 container mx-auto h-100">
+        <div className="w-full h-full">
+          <textarea value={code} className="border h-full w-full" />
+        </div>
+
+        <div className="w-full h-full">
+          <textarea className="border w-full h-full" value={watBox} />
+        </div>
+      </div>
+      <div className="container mx-auto flex gap-4 justify-center">
+        <button
+          onClick={() => {
+            compileCode(code || "");
+          }}
+          className="bg-blue-500 text-white px-4 py-2 rounded  "
+        >
+          Compile
+        </button>
+        <button
+          onClick={() => {
+            compileCode(code || "").then((code) => {
+              execute(code);
+            });
+            console.log("output", output);
+          }}
+          className="bg-blue-500 text-white px-4 py-2  rounded"
+        >
+          Execute
+        </button>
+      </div>
+      {errorMessage && showErrorModal && (
+        <ErrorModal errorMessage={errorMessage} />
+      )}
+      <div className="container mx-auto mt-20 h-screen">
+        <h1>Output</h1>
         <textarea
           className="border w-full h-full"
           value={output
@@ -137,72 +184,13 @@ function App() {
             .join("")}
         />
       </div>
-      <div className="flex gap-4 container mx-auto h-150">
-        <div className="w-full h-full">
-          <span>
-            <select
-              defaultValue={"Select a program"}
-              onChange={(e) => {
-                setCode(e.target.value);
-              }}
-            >
-              <option disabled>Select a program</option>
-              {examplePrograms.map(({ name, program }) => {
-                return <option value={program}>{name}</option>;
-              })}
-            </select>
-          </span>
-          <textarea value={code} className="border h-full w-full" />
-        </div>
-        <button
-          onClick={() => {
-            compileCode(code || "");
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Compile
-        </button>
-        <button
-          onClick={() => {
-            compileCode(code || "").then((code) => {
-              execute(code);
-            });
-            console.log("output", output);
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Execute
-        </button>
-        <div className="w-full h-full">
-          <textarea className="border w-full h-full" value={watBox} />
-        </div>
-      </div>
-
-      {errorMessage && showErrorModal && (
-        <ErrorModal errorMessage={errorMessage} />
-      )}
     </>
   );
 }
 
 export default App;
-// async function compile() {
-//   const wabtModule = await wabt();
-
-//   const wat = `(module
-//   (func (export "add") (param i32 i32) (result i32)
-//     local.get 0
-//     local.get 1
-//     i32.add)
-// )`;
-//   const mod = wabtModule.parseWat("example.wat", wat);
-//   mod.validate();
-//   const binaryOutput = mod.toBinary({ log: true });
-//   console.log("WASM Binary:", binaryOutput);
-// }
 
 //LEFT TO DO
-//Refactor
 // Style
 // Deploy
 //Add to Portfolio

@@ -2,12 +2,12 @@ import { ErrorListener, RecognitionException, Recognizer, Token } from "antlr4";
 
 export class ThrowErrorListener<T> extends ErrorListener<T> {
   public syntaxError(
-    recognizer: Recognizer<T>,
+    _recognizer: Recognizer<T>,
     offendingSymbol: T,
-    line: number,
-    column: number,
-    msg: string,
-    e: RecognitionException | undefined
+    _line: number,
+    _column: number,
+    _msg: string,
+    _e: RecognitionException | undefined
   ): void {
     if (offendingSymbol === null || offendingSymbol === undefined) {
       throw Error(`Lexing Error`);
