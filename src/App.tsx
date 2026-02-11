@@ -1,5 +1,4 @@
 import wabt from "wabt";
-import "./App.css";
 import { Compiler } from "./compiler/compiler";
 import { useState } from "react";
 import ErrorModal from "./components/ErrorModal";
@@ -9,11 +8,11 @@ import { examplePrograms } from "./programs";
 function App() {
   const [watBox, setWatBox] = useState<string>("");
   const [code, setCode] = useState<string>(
-    `Select a program from the dropdown`
+    `Select a program from the dropdown`,
   );
   const [output, setOutput] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
   const compileCode = async (code: string) => {
@@ -119,69 +118,105 @@ function App() {
   }
 
   return (
-    <>
-      <nav className="mb-20">
-        <h1 className="text-3xl font-bold underline">A-FUN Compiler</h1>
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      <nav className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-6 py-5 flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight text-blue-600">
+            A-FUN Compiler
+          </h1>
+        </div>
       </nav>
-      <div className="container mx-auto">
-        <select
-          defaultValue={"Select a program"}
-          onChange={(e) => {
-            setCode(e.target.value);
-          }}
-        >
-          <option disabled>Select a program</option>
-          {examplePrograms.map(({ name, program }) => {
-            return <option value={program}>{name}</option>;
-          })}
-        </select>
-      </div>
-      <div className="flex gap-4 container mx-auto h-100">
-        <div className="w-full h-full">
-          <textarea value={code} className="border h-full w-full" />
-        </div>
-
-        <div className="w-full h-full">
-          <textarea className="border w-full h-full" value={watBox} />
-        </div>
-      </div>
-      <div className="container mx-auto flex gap-4 justify-center">
-        <button
-          onClick={() => {
-            compileCode(code || "");
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded  "
-        >
-          Compile
-        </button>
-        <button
-          onClick={() => {
-            compileCode(code || "").then((code) => {
-              execute(code);
-            });
-          }}
-          className="bg-blue-500 text-white px-4 py-2  rounded"
-        >
-          Execute
-        </button>
-      </div>
       {errorMessage && showErrorModal && (
         <ErrorModal errorMessage={errorMessage} />
       )}
-      <div className="container mx-auto mt-20 h-screen">
-        <h1>Output</h1>
-        <textarea
-          className="border w-full h-full"
-          value={output
-            .map((x) => {
-              if (x === "\n\x00") {
-                return "\n";
-              } else return x;
-            })
-            .join("")}
-        />
-      </div>
-    </>
+      <main className="container mx-auto px-6 py-10 space-y-10">
+        <div className="flex items-center gap-6">
+          {/* Label */}
+          <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+            Example Programs:
+          </label>
+
+          {/* Dropdown */}
+          <select
+            defaultValue={"Select a program"}
+            onChange={(e) => setCode(e.target.value)}
+            className="border rounded-lg px-4 py-2 bg-white shadow-sm 
+               focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <option disabled>Select a program</option>
+
+            {examplePrograms.map(({ name, program }) => (
+              <option key={name} value={program}>
+                {name}
+              </option>
+            ))}
+          </select>
+
+          {/* Buttons */}
+          <div className="flex gap-4">
+            <button
+              onClick={() => compileCode(code || "")}
+              className="bg-blue-600 hover:bg-blue-700 transition 
+                 text-white font-medium px-6 py-2 rounded-lg shadow-sm"
+            >
+              Compile
+            </button>
+
+            <button
+              onClick={() => {
+                compileCode(code || "").then((compiled) => {
+                  execute(compiled);
+                });
+              }}
+              className="bg-green-600 hover:bg-green-700 transition 
+                 text-white font-medium px-6 py-2 rounded-lg shadow-sm"
+            >
+              Execute
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[80vh]">
+          <div className="bg-white rounded-xl shadow-sm border p-4 flex flex-col">
+            <h2 className="font-semibold text-gray-700 mb-2">Source Code</h2>
+
+            <textarea
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="flex-1 border rounded-lg p-3 font-mono text-sm resize-none 
+                         focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border p-4 flex flex-col">
+            <h2 className="font-semibold text-gray-700 mb-2">
+              Compiled WAT Output
+            </h2>
+
+            <textarea
+              value={watBox}
+              readOnly
+              className="flex-1 border rounded-lg p-3 font-mono text-sm resize-none 
+                         bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border p-4">
+          <h2 className="font-semibold text-gray-700 mb-2">Output Console</h2>
+
+          <textarea
+            className="w-full h-screen border rounded-lg p-6 
+               font-mono text-lg leading-[1.3]
+               bg-black text-green-400 
+               resize-none overflow-auto
+               focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={output.map((x) => (x === "\n\x00" ? "\n" : x)).join("")}
+            readOnly
+          />
+        </div>
+      </main>
+    </div>
   );
 }
 
