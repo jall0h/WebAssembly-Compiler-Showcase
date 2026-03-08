@@ -1,33 +1,46 @@
-# A-FUN Compiler Showcase
+# 🧬 A-FUN Compiler Playground
 
-## Description
-Web playground for a compiler, translating A-FUN functional programming language to WebAssembly Text Format (WAT) executed in the browser. [LIVE DEMO](https://web-assembly-compiler-showcase.vercel.app)
+> A browser-based compiler that translates the **A-FUN** functional programming language into **WebAssembly Text Format (WAT)**, executed live in the browser.
 
-<img width="1073" height="602" alt="image" src="https://github.com/user-attachments/assets/d51219c8-eedd-45c9-88ad-7b621709ff02" />
+🔗 **[Live Demo →](https://web-assembly-compiler-showcase.vercel.app)**
 
+![A-FUN Playground Screenshot](https://github.com/user-attachments/assets/d51219c8-eedd-45c9-88ad-7b621709ff02)
 
-## Installation
-Prerequisites
-- Node
-- pnpm
+---
 
-1. Clone repository
+## ✨ Features
+
+- 📝 Write A-FUN functional code in a live editor
+- ⚙️ Compiles to WebAssembly Text Format (WAT) in real time
+- 🚀 Executes directly in the browser — no backend required
+- 🔍 Inspect generated WAT output side-by-side
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React + Vite |
+| Language | TypeScript |
+| Compilation target | WebAssembly (WAT) |
+
+---
+
+## 🚀 Getting Started
+
+**Prerequisites:** Node.js, pnpm
 ```sh
+# 1. Clone the repository
 git clone <repo-link>
-```
 
-2. Install packages
-
-  ```sh
+# 2. Install dependencies
 pnpm install
-```
-3. Run development environment
 
-```sh
+# 3. Start the dev server
 pnpm run dev
 ```
 
-## Tech Stack
-- React with Vite
-- TypeScript
-- WebAssembly
+Then open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
