@@ -1,7 +1,7 @@
 # A-FUN Compiler Showcase
 
 ## Description
-Web playground for a compiler, translating A-FUN functional programming language to WebAssembly Text Format (WAT) executed in the browser.
+Web playground for a compiler, translating A-FUN functional programming language to WebAssembly Text Format (WAT) executed in the browser. [LIVE DEMO](https://web-assembly-compiler-showcase.vercel.app)
 
 <img width="1073" height="602" alt="image" src="https://github.com/user-attachments/assets/d51219c8-eedd-45c9-88ad-7b621709ff02" />
 
